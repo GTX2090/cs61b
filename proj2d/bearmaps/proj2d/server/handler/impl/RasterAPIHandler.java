@@ -84,11 +84,72 @@ public class RasterAPIHandler extends APIRouteHandler<Map<String, Double>, Map<S
      */
     @Override
     public Map<String, Object> processRequest(Map<String, Double> requestParams, Response response) {
-        //System.out.println("yo, wanna know the parameters given by the web browser? They are:");
-        //System.out.println(requestParams);
+        System.out.println("yo, wanna know the parameters given by the web browser? They are:");
+        System.out.println(requestParams);
         Map<String, Object> results = new HashMap<>();
-        System.out.println("Since you haven't implemented RasterAPIHandler.processRequest, nothing is displayed in "
-                + "your browser.");
+        double lrlon = requestParams.get("lrlon"), ullon=requestParams.get("ullon"), w=requestParams.get("w"),
+                h=requestParams.get("h"), ullat=requestParams.get("ullat"), lrlat=requestParams.get("lrlat");
+        double LonDPP = (lrlon - ullon) / w;
+        double origLonDPP = (122.29980468 - 122.21191406)/256;
+        int i = 0;
+        for (;i <= 7; i++) {
+            if (origLonDPP < LonDPP) {
+                break;
+            }
+            origLonDPP /= 2.0;
+        }
+
+        double raster_ul_lon = -122.29980468;
+        int ul_lon = 0;
+        for (; ul_lon < i; ul_lon++) {
+            if (raster_ul_lon + (122.29980468 - 122.21191406)/(i) > ullon) {
+                break;
+            }
+            raster_ul_lon += (122.29980468 - 122.21191406)/(i);
+        }
+
+        double raster_lr_lon = -122.21191406;
+        int lr_lon = i - 1;
+        for (; lr_lon >= 0; lr_lon--) {
+            if (raster_lr_lon - (122.29980468 - 122.21191406)/(i) < lrlon) {
+                break;
+            }
+            raster_lr_lon -= (122.29980468 - 122.21191406)/ (i);
+        }
+
+
+        double raster_ul_lat = 37.89219554;
+        int ul_lat = 0;
+        for (; ul_lat < i; ul_lat++) {
+            if (raster_ul_lat - (37.89219554 - 37.82280243)/(i) < ullat) {
+                break;
+            }
+            raster_ul_lat -= (37.89219554 - 37.82280243)/(i);
+        }
+
+        double raster_lr_lat = 37.82280243;
+        int lr_lat = i - 1;
+        for (; lr_lat >= 0; lr_lat--) {
+            if (raster_lr_lat + (37.89219554 - 37.82280243)/(i) > lrlat) {
+                break;
+            }
+            raster_lr_lat += (37.89219554 - 37.82280243)/(i);
+        }
+
+        String[][] grid = new String[lr_lat - ul_lat + 1][lr_lon - ul_lon + 1];
+        for (int xx = 0; xx < grid.length; xx++) {
+            for (int yy = 0; yy < grid[0].length; yy++) {
+                int temp1 = yy + ul_lon, temp2 = xx + ul_lat;
+                grid[xx][yy] = "d" + i + "_x" + temp1 + "_y" + temp2 + ".png";
+            }
+        }
+        results.put("render_grid", grid);
+        results.put("raster_ul_lon", raster_ul_lon);
+        results.put("raster_ul_lat", raster_ul_lat);
+        results.put("raster_lr_lon", raster_lr_lon);
+        results.put("raster_lr_lat", raster_lr_lat);
+        results.put("depth", i);
+        results.put("query_success", true);
         return results;
     }
 
