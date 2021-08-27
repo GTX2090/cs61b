@@ -1,7 +1,7 @@
 package bearmaps.proj2c;
 
 import java.util.List;
-
+import java.util.*;
 /**
  * Represents a graph of vertices.
  * Created by hug.
